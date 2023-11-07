@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Create the serial tty if it doesn't already exist
+if [ ! -c /dev/ttyS0 ]
+then
+	mknod /dev/ttyS0 -m 660 /dev/ttyS0 c 4 64
+fi
+
+# Try to read in the script from the host system
+/sbin/m5 readfile > /tmp/script
+chmod 755 /tmp/script
+if [ -s /tmp/script ]
+then
+	# If there is a script, execute the script and then exit the simulation
+	/tmp/script # su root -c '/tmp/script' # gives script full privileges as root user in multi-user mode
+	# sync
+    # sleep 3
+    /sbin/m5 exit
+fi
+
+# 两个作用：没有readfile时会执行到这里启动终端；有readfile时启动这个防止init脚本退出（通过m5 exit 退出，而不是退出init脚本）
+exec /sbin/getty --autologin root -8 38400 ttyS0
