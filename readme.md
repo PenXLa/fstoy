@@ -33,5 +33,24 @@ build/X86/gem5.opt configs/fs-kvm.py --cmd="/root/hello" --disk-image $FSTOY_HOM
 #include "/root/gem5/util/m5/src/m5_mmap.h"
 ```
 
+例如：
+```c++
+#include "/root/gem5/util/m5/src/m5_mmap.h"
+#include <gem5/m5ops.h>
+using namespace std;
+
+int main() {
+	
+	with_m5_mmap({m5_switch_cpu_addr();});
+
+	for (int i=0; i<10000; ++i) {
+		asm volatile("nop");
+	}
+	return 0;
+
+}
+
+```
+
 # 其它
 使用 `sudo make chroot` 可以切换到 `rootfs`。

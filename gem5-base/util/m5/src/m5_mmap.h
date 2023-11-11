@@ -9,10 +9,17 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #ifndef M5OP_ADDR
 #define M5OP_ADDR 0xFFFF0000
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern void *m5_mem; // 这个不能少，会被 _addr 的实现用到
 
 #define with_m5_mmap(block) \
     do { \
@@ -23,7 +30,8 @@
             fprintf(stderr, "Can't open %s: %s\n", m5_mmap_dev, strerror(errno)); \
             exit(1); \
         } \
-        void* m5_mem = mmap(NULL, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, M5OP_ADDR); \
+        m5_mem = mmap(NULL, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, M5OP_ADDR); \
+        printf("m5_mem: %p\n", m5_mem); \
         close(fd); \
         if (!m5_mem) { \
             fprintf(stderr, "Can't map %s: %s\n", m5_mmap_dev, strerror(errno)); \
@@ -31,7 +39,12 @@
         } \
         block; \
         munmap(m5_mem, 0x10000); \
+        m5_mem = NULL; \
     } while (0)
 
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif

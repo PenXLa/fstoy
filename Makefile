@@ -7,6 +7,7 @@ image: new-empty-img
 	@$(MAKEFILE_DIR)/gem5-base/util/gem5img.py mount $(MAKEFILE_DIR)/out/rootfs.img /tmp/fstoy-rootfs
 	@rm -rf /tmp/fstoy-rootfs/*
 	@cp -r $(MAKEFILE_DIR)/rootfs/* /tmp/fstoy-rootfs
+	@cp -r $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/root/gem5
 	@$(MAKEFILE_DIR)/gem5-base/util/gem5img.py umount /tmp/fstoy-rootfs
 	
 new-empty-img:
@@ -39,10 +40,12 @@ chroot:
 	@mount -o bind /sys $(MAKEFILE_DIR)/rootfs/sys
 	@mount -o bind /dev $(MAKEFILE_DIR)/rootfs/dev
 	@mount -o bind /proc $(MAKEFILE_DIR)/rootfs/proc
+	@mount -o bind $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/root/gem5
 	-chroot $(MAKEFILE_DIR)/rootfs /bin/bash
-	@umount $(MAKEFILE_DIR)/rootfs/sys
-	@umount $(MAKEFILE_DIR)/rootfs/proc
-	@umount $(MAKEFILE_DIR)/rootfs/dev
+	-umount $(MAKEFILE_DIR)/rootfs/sys
+	-umount $(MAKEFILE_DIR)/rootfs/proc
+	-umount $(MAKEFILE_DIR)/rootfs/dev
+	-umount $(MAKEFILE_DIR)/rootfs/root/gem5
 
 init-ubuntu22:
 # Download ubuntu 22.04 base image
@@ -63,9 +66,9 @@ init-ubuntu22:
 # m5
 	@cp $(MAKEFILE_DIR)/gem5-base/util/m5/build/x86/out/m5 $(MAKEFILE_DIR)/rootfs/sbin/m5
 # gem5 library
-	@cp -r $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/root/gem5
+	@mkdir -p $(MAKEFILE_DIR)/rootfs/root/gem5
 # workloads
-	@ln -s $(MAKEFILE_DIR)/rootfs/root $(MAKEFILE_DIR)/rootfs/workloads
+	@cd $(MAKEFILE_DIR) && ln -s rootfs/root workloads
 
 download-kernel:
 	@mkdir -p $(MAKEFILE_DIR)/kernels
