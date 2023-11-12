@@ -31,7 +31,6 @@ extern void *m5_mem; // 这个不能少，会被 _addr 的实现用到
             exit(1); \
         } \
         m5_mem = mmap(NULL, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, M5OP_ADDR); \
-        printf("m5_mem: %p\n", m5_mem); \
         close(fd); \
         if (!m5_mem) { \
             fprintf(stderr, "Can't map %s: %s\n", m5_mmap_dev, strerror(errno)); \
