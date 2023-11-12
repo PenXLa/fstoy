@@ -46,7 +46,9 @@ int main() {
 	return 0;
 
 }
-
+```
+```bash
+g++ test.cpp -o test -L /gem5/util/m5/build/x86/out -lm5
 ```
 
 # 其它
