@@ -7,13 +7,14 @@ image: new-empty-img
 	@$(MAKEFILE_DIR)/gem5-base/util/gem5img.py mount $(MAKEFILE_DIR)/out/rootfs.img /tmp/fstoy-rootfs
 	@rm -rf /tmp/fstoy-rootfs/*
 	@cp -r $(MAKEFILE_DIR)/rootfs/* /tmp/fstoy-rootfs
-	@cp -r $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/root/gem5
+	@cp -r $(MAKEFILE_DIR)/gem5-base/* /tmp/fstoy-rootfs/gem5
+	@cp -r $(MAKEFILE_DIR)/workloads/* /tmp/fstoy-rootfs/root
 	@$(MAKEFILE_DIR)/gem5-base/util/gem5img.py umount /tmp/fstoy-rootfs
 	
 new-empty-img:
 	@rm -f $(MAKEFILE_DIR)/out/rootfs.img
 	@mkdir -p out
-	$(eval ROOTFS_SIZE := $(shell du -s -BM rootfs | cut -f1 -d'M'))
+	$(eval ROOTFS_SIZE := $(shell du -sc -BM rootfs workloads | tail -n 1 | cut -f1 -d'M'))
 	@if [ $(ROOTFS_SIZE) -lt 1024 ]; then \
 		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 1024; \
 	elif [ $(ROOTFS_SIZE) -ge 1024 ] && [ $(ROOTFS_SIZE) -lt 2048 ]; then \
@@ -40,17 +41,18 @@ chroot:
 	@mount -o bind /sys $(MAKEFILE_DIR)/rootfs/sys
 	@mount -o bind /dev $(MAKEFILE_DIR)/rootfs/dev
 	@mount -o bind /proc $(MAKEFILE_DIR)/rootfs/proc
-	@mount -o bind $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/root/gem5
+	@mount -o bind $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/gem5
+	@mount -o bind $(MAKEFILE_DIR)/workloads $(MAKEFILE_DIR)/rootfs/root
 	-chroot $(MAKEFILE_DIR)/rootfs /bin/bash
 	-umount $(MAKEFILE_DIR)/rootfs/sys
 	-umount $(MAKEFILE_DIR)/rootfs/proc
 	-umount $(MAKEFILE_DIR)/rootfs/dev
-	-umount $(MAKEFILE_DIR)/rootfs/root/gem5
+	-umount $(MAKEFILE_DIR)/rootfs/gem5
+	-umount $(MAKEFILE_DIR)/rootfs/root
 
 init-ubuntu22:
 # Download ubuntu 22.04 base image
 	@rm -rf $(MAKEFILE_DIR)/rootfs/*
-	@rm -f $(MAKEFILE_DIR)/workloads
 	@wget http://cdimage.ubuntu.com/ubuntu-base/releases/jammy/release/ubuntu-base-22.04-base-amd64.tar.gz -O /tmp/fstoy-ubuntu-base-22.04-base-amd64.tar.gz
 	@mkdir -p $(MAKEFILE_DIR)/rootfs
 	@tar -xzf /tmp/fstoy-ubuntu-base-22.04-base-amd64.tar.gz -C $(MAKEFILE_DIR)/rootfs
@@ -64,11 +66,9 @@ init-ubuntu22:
 # fstab
 	@cp $(MAKEFILE_DIR)/rootfs-config/fstab $(MAKEFILE_DIR)/rootfs/etc/fstab
 # m5
-	@cp $(MAKEFILE_DIR)/gem5-base/util/m5/build/x86/out/m5 $(MAKEFILE_DIR)/rootfs/sbin/m5
+	@ln -s /gem5/util/m5/build/x86/out/m5 $(MAKEFILE_DIR)/rootfs/sbin/m5
 # gem5 library
-	@mkdir -p $(MAKEFILE_DIR)/rootfs/root/gem5
-# workloads
-	@cd $(MAKEFILE_DIR) && ln -s rootfs/root workloads
+	@mkdir -p $(MAKEFILE_DIR)/rootfs/gem5
 
 download-kernel:
 	@mkdir -p $(MAKEFILE_DIR)/kernels

@@ -9,7 +9,8 @@ make download-kernel
 
 * `rootfs` 是系统目录。
 * `/sbin/init` 是初始化脚本
-* `workload` 目录链接了 `rootfs/root` 目录，可以把 `workload` 放到这里
+* `workload` 可以把 workload 放到这里。在 chroot 或构建镜像时，此目录会被映射到 `/root`
+* `gem5-base` 放置了 m5op 相关的文件。其中，libm5 是支持 PIC 的。在 chroot 或构建镜像时，此目录会被映射到 `/gem5`
 
 # 构建镜像
 使用 `sudo make image` 构建镜像，镜像会输出到 `out/rootfs.img`
@@ -24,19 +25,15 @@ build/X86/gem5.opt configs/fs-kvm.py --cmd="/root/hello" --disk-image $FSTOY_HOM
 可以使用 `eval $(make env)` 来设置环境变量。
 
 # m5ops
-如果要调用 m5_mmap，可以直接使用下面头文件的 `with_m5_mmap` 宏。
+如果要调用 m5_mmap，可以直接使用下面头文件的 `with_m5_mmap` 宏。(chroot 后在系统内部编译)
 ```c++
-#include "/.../fstoy/gem5-base/util/m5/src/m5_mmap.h"
-```
-如果要在 chroot 后在系统内部编译，可以
-```c++
-#include "/root/gem5/util/m5/src/m5_mmap.h"
+#include "/gem5/util/m5/src/m5_mmap.h"
 ```
 
 例如：
 ```c++
-#include "/root/gem5/util/m5/src/m5_mmap.h"
-#include <gem5/m5ops.h>
+#include "/gem5/util/m5/src/m5_mmap.h"
+#include "/gem5/include/gem5/m5ops.h"
 using namespace std;
 
 int main() {
