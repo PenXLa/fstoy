@@ -1,4 +1,4 @@
-out/
-rootfs/
-workloads/
-kernels/
+/out/
+/rootfs/
+/workloads/
+/kernels/
