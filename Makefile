@@ -44,7 +44,7 @@ chroot:
 	@mount -o bind /sys $(MAKEFILE_DIR)/rootfs/sys
 	@mount -o bind /dev $(MAKEFILE_DIR)/rootfs/dev
 	@mount -o bind /proc $(MAKEFILE_DIR)/rootfs/proc
-	@mount -o bind $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/gem5
+	@mount --bind -o ro $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/gem5  # Readonly mount
 	@mount -o bind $(MAKEFILE_DIR)/workloads $(MAKEFILE_DIR)/rootfs/root
 	-SHELL=/bin/bash chroot $(MAKEFILE_DIR)/rootfs /bin/bash
 	-umount -l $(MAKEFILE_DIR)/rootfs/sys
