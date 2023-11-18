@@ -43,6 +43,7 @@ int main() {
 	for (int i=0; i<10000; ++i) {
 		asm volatile("nop");
 	}
+	with_m5_mmap({m5_exit_addr(0);});
 	return 0;
 
 }

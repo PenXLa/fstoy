@@ -9,25 +9,28 @@ image: new-empty-img
 	@cp -r $(MAKEFILE_DIR)/rootfs/* /tmp/fstoy-rootfs
 	@cp -r $(MAKEFILE_DIR)/gem5-base/* /tmp/fstoy-rootfs/gem5
 	@cp -r $(MAKEFILE_DIR)/workloads/* /tmp/fstoy-rootfs/root
+# init script
+	@cp $(MAKEFILE_DIR)/rootfs-config/init /tmp/fstoy-rootfs/sbin/init
+	@echo "files copied"
 	@$(MAKEFILE_DIR)/gem5-base/util/gem5img.py umount /tmp/fstoy-rootfs
 	
 new-empty-img:
 	@rm -f $(MAKEFILE_DIR)/out/rootfs.img
 	@mkdir -p out
 	$(eval ROOTFS_SIZE := $(shell du -sc -BM rootfs workloads | tail -n 1 | cut -f1 -d'M'))
-	@if [ $(ROOTFS_SIZE) -lt 1024 ]; then \
+	@if [ $(ROOTFS_SIZE) -lt 512 ]; then \
 		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 1024; \
-	elif [ $(ROOTFS_SIZE) -ge 1024 ] && [ $(ROOTFS_SIZE) -lt 2048 ]; then \
+	elif [ $(ROOTFS_SIZE) -ge 512 ] && [ $(ROOTFS_SIZE) -lt 1800 ]; then \
 		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 2048; \
-	elif [ $(ROOTFS_SIZE) -ge 2048 ] && [ $(ROOTFS_SIZE) -lt 4096 ]; then \
+	elif [ $(ROOTFS_SIZE) -ge 1800 ] && [ $(ROOTFS_SIZE) -lt 3800 ]; then \
 		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 4096; \
-	elif [ $(ROOTFS_SIZE) -ge 4096 ] && [ $(ROOTFS_SIZE) -lt 8192 ]; then \
+	elif [ $(ROOTFS_SIZE) -ge 3800 ] && [ $(ROOTFS_SIZE) -lt 7800 ]; then \
 		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 8192; \
-	elif [ $(ROOTFS_SIZE) -ge 8192 ] && [ $(ROOTFS_SIZE) -lt 16384 ]; then \
+	elif [ $(ROOTFS_SIZE) -ge 7800 ] && [ $(ROOTFS_SIZE) -lt 16000 ]; then \
 		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 16384; \
-	elif [ $(ROOTFS_SIZE) -ge 16384 ] && [ $(ROOTFS_SIZE) -lt 32768 ]; then \
+	elif [ $(ROOTFS_SIZE) -ge 16000 ] && [ $(ROOTFS_SIZE) -lt 32000 ]; then \
 		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 32768; \
-	elif [ $(ROOTFS_SIZE) -ge 32768 ] && [ $(ROOTFS_SIZE) -lt 65536 ]; then \
+	elif [ $(ROOTFS_SIZE) -ge 32000 ] && [ $(ROOTFS_SIZE) -lt 64000 ]; then \
 		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 65536; \
 	else \
 		echo "Rootfs size exceeds 64G"; \
@@ -43,12 +46,12 @@ chroot:
 	@mount -o bind /proc $(MAKEFILE_DIR)/rootfs/proc
 	@mount -o bind $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/gem5
 	@mount -o bind $(MAKEFILE_DIR)/workloads $(MAKEFILE_DIR)/rootfs/root
-	-chroot $(MAKEFILE_DIR)/rootfs /bin/bash
-	-umount $(MAKEFILE_DIR)/rootfs/sys
-	-umount $(MAKEFILE_DIR)/rootfs/proc
-	-umount $(MAKEFILE_DIR)/rootfs/dev
-	-umount $(MAKEFILE_DIR)/rootfs/gem5
-	-umount $(MAKEFILE_DIR)/rootfs/root
+	-SHELL=/bin/bash chroot $(MAKEFILE_DIR)/rootfs /bin/bash
+	-umount -l $(MAKEFILE_DIR)/rootfs/sys
+	-umount -l $(MAKEFILE_DIR)/rootfs/proc
+	-umount -l $(MAKEFILE_DIR)/rootfs/dev
+	-umount -l $(MAKEFILE_DIR)/rootfs/gem5
+	-umount -l $(MAKEFILE_DIR)/rootfs/root
 
 init-ubuntu22:
 # Download ubuntu 22.04 base image
@@ -59,8 +62,6 @@ init-ubuntu22:
 	@rm -f /tmp/fstoy-ubuntu-base-22.04-base-amd64.tar.gz
 # dns config
 	@cp /etc/resolv.conf $(MAKEFILE_DIR)/rootfs/etc/resolv.conf
-# init script
-	@cp $(MAKEFILE_DIR)/rootfs-config/init $(MAKEFILE_DIR)/rootfs/sbin/init
 # hosts
 	@cp $(MAKEFILE_DIR)/rootfs-config/hosts $(MAKEFILE_DIR)/rootfs/etc/hosts
 # fstab
@@ -76,5 +77,14 @@ download-kernel:
 
 env:
 	@echo "export FSTOY_HOME=$(MAKEFILE_DIR)"
+
+# 由于出错导致有残留的挂载点时，可以使用以下命令卸载
+umount:
+	-umount -l $(MAKEFILE_DIR)/rootfs/sys
+	-umount -l $(MAKEFILE_DIR)/rootfs/proc
+	-umount -l $(MAKEFILE_DIR)/rootfs/dev
+	-umount -l $(MAKEFILE_DIR)/rootfs/gem5
+	-umount -l $(MAKEFILE_DIR)/rootfs/root
+	-$(MAKEFILE_DIR)/gem5-base/util/gem5img.py umount /tmp/fstoy-rootfs
 
 .PHONY: chroot clean image new-empty-img download-kernel init-ubuntu22 env
