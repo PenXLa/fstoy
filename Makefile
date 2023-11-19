@@ -10,6 +10,7 @@ image: new-empty-img
 	@cp -r $(MAKEFILE_DIR)/gem5-base/* /tmp/fstoy-rootfs/gem5
 	@cp -r $(MAKEFILE_DIR)/workloads/* /tmp/fstoy-rootfs/root
 # init script
+	@rm -f /tmp/fstoy-rootfs/sbin/init	# need to delete the old init because it may be a symbolic link
 	@cp $(MAKEFILE_DIR)/rootfs-config/init /tmp/fstoy-rootfs/sbin/init
 	@echo "files copied"
 	@$(MAKEFILE_DIR)/gem5-base/util/gem5img.py umount /tmp/fstoy-rootfs

@@ -51,6 +51,15 @@ int main() {
 ```bash
 g++ test.cpp -o test -L /gem5/util/m5/build/x86/out -lm5
 ```
+在 `CMakeLists.txt` 里添加 `m5` 库：
+
+```cmakelists
+add_library(m5 STATIC IMPORTED)
+set_target_properties(m5 PROPERTIES IMPORTED_LOCATION "/gem5/util/m5/build/x86/out/libm5.a")
+target_link_libraries(Executable m5)
+```
+
+
 
 # 其它
 使用 `sudo make chroot` 可以切换到 `rootfs`。

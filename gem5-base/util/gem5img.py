@@ -53,7 +53,7 @@ import re
 # Some constants.
 MaxLBACylinders = 16383
 MaxLBAHeads = 16
-MaxLBASectors = 63
+MaxLBASectors = 1024 # 63
 MaxLBABlocks = MaxLBACylinders * MaxLBAHeads * MaxLBASectors
 
 BlockSize = 512
