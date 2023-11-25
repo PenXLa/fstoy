@@ -63,3 +63,9 @@ target_link_libraries(Executable m5)
 
 # 其它
 使用 `sudo make chroot` 可以切换到 `rootfs`。
+
+## QEMU
+目前没有支持 QEMU。但是仍可以使用 out/rootfs.img 作为 QEMU 的启动镜像。一个例子：
+```bash
+./qemu-system-x86_64 -nographic -kernel ~/bzImage -drive file=~/fstoy/out/rootfs.img,if=virtio,format=raw -append "root=/dev/vda1 console=ttyS0 init=/bin/bash"
+```
