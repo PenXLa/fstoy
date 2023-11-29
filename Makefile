@@ -1,14 +1,17 @@
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-image: new-empty-img
+workload-dir:
+	@mkdir -p $(MAKEFILE_DIR)/workloads
+
+image: new-empty-img workload-dir
 	@mkdir -p $(MAKEFILE_DIR)/out
 	@mkdir -p /tmp/fstoy-rootfs
 	@rm -rf /tmp/fstoy-rootfs/*
 	@$(MAKEFILE_DIR)/gem5-base/util/gem5img.py mount $(MAKEFILE_DIR)/out/rootfs.img /tmp/fstoy-rootfs
 	@rm -rf /tmp/fstoy-rootfs/*
-	@cp -r $(MAKEFILE_DIR)/rootfs/* /tmp/fstoy-rootfs
-	@cp -r $(MAKEFILE_DIR)/gem5-base/* /tmp/fstoy-rootfs/gem5
-	@cp -r $(MAKEFILE_DIR)/workloads/* /tmp/fstoy-rootfs/root
+	@rsync -ar --info=progress2 --info=name0 $(MAKEFILE_DIR)/rootfs/ /tmp/fstoy-rootfs
+	@rsync -ar --info=progress2 --info=name0 $(MAKEFILE_DIR)/gem5-base/ /tmp/fstoy-rootfs/gem5
+	@rsync -ar --info=progress2 --info=name0 $(MAKEFILE_DIR)/workloads/ /tmp/fstoy-rootfs/root
 # init script
 	@rm -f /tmp/fstoy-rootfs/sbin/init	# need to delete the old init because it may be a symbolic link
 	@cp $(MAKEFILE_DIR)/rootfs-config/init /tmp/fstoy-rootfs/sbin/init
@@ -41,7 +44,7 @@ clean:
 	@rm -rf out
 	@echo "Images cleaned"
 
-chroot:
+chroot: workload-dir
 	@mount -o bind /sys $(MAKEFILE_DIR)/rootfs/sys
 	@mount -o bind /dev $(MAKEFILE_DIR)/rootfs/dev
 	@mount -o bind /proc $(MAKEFILE_DIR)/rootfs/proc
@@ -54,7 +57,7 @@ chroot:
 	-umount -l $(MAKEFILE_DIR)/rootfs/gem5
 	-umount -l $(MAKEFILE_DIR)/rootfs/root
 
-init-ubuntu22:
+init-ubuntu22: workload-dir
 # Download ubuntu 22.04 base image
 	@rm -rf $(MAKEFILE_DIR)/rootfs/*
 	@wget http://cdimage.ubuntu.com/ubuntu-base/releases/jammy/release/ubuntu-base-22.04-base-amd64.tar.gz -O /tmp/fstoy-ubuntu-base-22.04-base-amd64.tar.gz
