@@ -57,13 +57,20 @@ chroot: workload-dir
 	-umount -l $(MAKEFILE_DIR)/rootfs/gem5
 	-umount -l $(MAKEFILE_DIR)/rootfs/root
 
-init-ubuntu22: workload-dir
-# Download ubuntu 22.04 base image
+download-ubuntu22:
+	@wget http://cdimage.ubuntu.com/ubuntu-base/releases/jammy/release/ubuntu-base-22.04-base-amd64.tar.gz -O /tmp/fstoy-ubuntu-base.tar.gz
+download-ubuntu20:
+	@wget http://cdimage.ubuntu.com/ubuntu-base/releases/focal/release/ubuntu-base-20.04.5-base-amd64.tar.gz -O /tmp/fstoy-ubuntu-base.tar.gz
+download-ubuntu18:
+	@wget http://cdimage.ubuntu.com/ubuntu-base/releases/bionic/release/ubuntu-base-18.04.5-base-amd64.tar.gz -O /tmp/fstoy-ubuntu-base.tar.gz
+download-ubuntu16:
+	@wget http://cdimage.ubuntu.com/ubuntu-base/releases/xenial/release/ubuntu-base-16.04.6-base-amd64.tar.gz -O /tmp/fstoy-ubuntu-base.tar.gz
+
+init-ubuntu%: download-ubuntu% workload-dir
 	@rm -rf $(MAKEFILE_DIR)/rootfs/*
-	@wget http://cdimage.ubuntu.com/ubuntu-base/releases/jammy/release/ubuntu-base-22.04-base-amd64.tar.gz -O /tmp/fstoy-ubuntu-base-22.04-base-amd64.tar.gz
 	@mkdir -p $(MAKEFILE_DIR)/rootfs
-	@tar -xzf /tmp/fstoy-ubuntu-base-22.04-base-amd64.tar.gz -C $(MAKEFILE_DIR)/rootfs
-	@rm -f /tmp/fstoy-ubuntu-base-22.04-base-amd64.tar.gz
+	@tar -xzf /tmp/fstoy-ubuntu-base.tar.gz -C $(MAKEFILE_DIR)/rootfs
+	@rm -f /tmp/fstoy-ubuntu-base.tar.gz
 # dns config
 	@cp /etc/resolv.conf $(MAKEFILE_DIR)/rootfs/etc/resolv.conf
 # hosts
