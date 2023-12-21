@@ -98,4 +98,4 @@ umount:
 	-umount -l $(MAKEFILE_DIR)/rootfs/root
 	-$(MAKEFILE_DIR)/gem5-base/util/gem5img.py umount /tmp/fstoy-rootfs
 
-.PHONY: chroot clean image new-empty-img download-kernel init-ubuntu22 env
+.PHONY: chroot clean image new-empty-img download-kernel init-ubuntu% env
