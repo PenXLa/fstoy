@@ -42,23 +42,9 @@ new-empty-img:
 	@rm -f $(MAKEFILE_DIR)/out/rootfs.img
 	@mkdir -p out
 	$(eval ROOTFS_SIZE := $(shell du -sc -BM rootfs workloads | tail -n 1 | cut -f1 -d'M'))
-	@if [ $(ROOTFS_SIZE) -lt 512 ]; then \
-		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 1024; \
-	elif [ $(ROOTFS_SIZE) -ge 512 ] && [ $(ROOTFS_SIZE) -lt 1800 ]; then \
-		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 2048; \
-	elif [ $(ROOTFS_SIZE) -ge 1800 ] && [ $(ROOTFS_SIZE) -lt 3800 ]; then \
-		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 4096; \
-	elif [ $(ROOTFS_SIZE) -ge 3800 ] && [ $(ROOTFS_SIZE) -lt 7800 ]; then \
-		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 8192; \
-	elif [ $(ROOTFS_SIZE) -ge 7800 ] && [ $(ROOTFS_SIZE) -lt 16000 ]; then \
-		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 16384; \
-	elif [ $(ROOTFS_SIZE) -ge 16000 ] && [ $(ROOTFS_SIZE) -lt 32000 ]; then \
-		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 32768; \
-	elif [ $(ROOTFS_SIZE) -ge 32000 ] && [ $(ROOTFS_SIZE) -lt 64000 ]; then \
-		$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img 65536; \
-	else \
-		echo "Rootfs size exceeds 64G"; \
-	fi
+	$(eval IMAGE_SIZE := $(shell expr $(ROOTFS_SIZE) + 256))
+	@echo "Image size: $(IMAGE_SIZE)M"
+	$(MAKEFILE_DIR)/gem5-base/util/gem5img.py init $(MAKEFILE_DIR)/out/rootfs.img $(IMAGE_SIZE);
 
 clean:
 	@rm -rf out
