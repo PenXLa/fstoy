@@ -1,5 +1,27 @@
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+# 先删除后复制，防止目标是软链接
+define rmcp
+	@rm -f $(2)
+	@cp $(1) $(2)
+endef
+
+define mount_rootfs
+	@mount -o bind /sys $(MAKEFILE_DIR)/rootfs/sys
+	@mount -o bind /dev $(MAKEFILE_DIR)/rootfs/dev
+	@mount -o bind /proc $(MAKEFILE_DIR)/rootfs/proc
+	@mount --bind -o ro $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/gem5  # Readonly mount
+	@mount -o bind $(MAKEFILE_DIR)/workloads $(MAKEFILE_DIR)/rootfs/root
+endef
+
+define umount_rootfs
+	-umount -l $(MAKEFILE_DIR)/rootfs/sys
+	-umount -l $(MAKEFILE_DIR)/rootfs/proc
+	-umount -l $(MAKEFILE_DIR)/rootfs/dev
+	-umount -l $(MAKEFILE_DIR)/rootfs/gem5
+	-umount -l $(MAKEFILE_DIR)/rootfs/root
+endef
+
 workload-dir:
 	@mkdir -p $(MAKEFILE_DIR)/workloads
 
@@ -44,17 +66,9 @@ clean:
 
 chroot: workload-dir
 	$(call apply_rootfs_config)
-	@mount -o bind /sys $(MAKEFILE_DIR)/rootfs/sys
-	@mount -o bind /dev $(MAKEFILE_DIR)/rootfs/dev
-	@mount -o bind /proc $(MAKEFILE_DIR)/rootfs/proc
-	@mount --bind -o ro $(MAKEFILE_DIR)/gem5-base $(MAKEFILE_DIR)/rootfs/gem5  # Readonly mount
-	@mount -o bind $(MAKEFILE_DIR)/workloads $(MAKEFILE_DIR)/rootfs/root
+	$(call mount_rootfs)
 	-@SHELL=/bin/bash chroot $(MAKEFILE_DIR)/rootfs /bin/bash
-	-umount -l $(MAKEFILE_DIR)/rootfs/sys
-	-umount -l $(MAKEFILE_DIR)/rootfs/proc
-	-umount -l $(MAKEFILE_DIR)/rootfs/dev
-	-umount -l $(MAKEFILE_DIR)/rootfs/gem5
-	-umount -l $(MAKEFILE_DIR)/rootfs/root
+	$(call umount_rootfs)
 
 download-ubuntu22:
 	@wget http://cdimage.ubuntu.com/ubuntu-base/releases/jammy/release/ubuntu-base-22.04-base-amd64.tar.gz -O /tmp/fstoy-ubuntu-base.tar.gz
@@ -66,13 +80,12 @@ download-ubuntu16:
 	@wget http://cdimage.ubuntu.com/ubuntu-base/releases/xenial/release/ubuntu-base-16.04.6-base-amd64.tar.gz -O /tmp/fstoy-ubuntu-base.tar.gz
 
 define apply_rootfs_config
-	@cp /etc/resolv.conf $(MAKEFILE_DIR)/rootfs/etc/resolv.conf						# dns config
-	@cp $(MAKEFILE_DIR)/rootfs-config/hosts $(MAKEFILE_DIR)/rootfs/etc/hosts		# fstab
-	@cp $(MAKEFILE_DIR)/rootfs-config/fstab $(MAKEFILE_DIR)/rootfs/etc/fstab		# m5
-	@ln -sf /gem5/util/m5/build/x86/out/m5 $(MAKEFILE_DIR)/rootfs/sbin/m5			#
-	@mkdir -p $(MAKEFILE_DIR)/rootfs/gem5											# gem5 library
-	@rm -f $(MAKEFILE_DIR)/rootfs/sbin/init											# init script. need to delete the old init because it may be a symbolic link
-	@cp $(MAKEFILE_DIR)/rootfs-config/init $(MAKEFILE_DIR)/rootfs/sbin/init			#
+	$(call rmcp,/etc/resolv.conf,$(MAKEFILE_DIR)/rootfs/etc/resolv.conf)				# dns config
+	$(call rmcp,$(MAKEFILE_DIR)/rootfs-config/hosts,$(MAKEFILE_DIR)/rootfs/etc/hosts)	# hosts
+	$(call rmcp,$(MAKEFILE_DIR)/rootfs-config/fstab,$(MAKEFILE_DIR)/rootfs/etc/fstab) 	# fstab
+	@ln -sf /gem5/util/m5/build/x86/out/m5 $(MAKEFILE_DIR)/rootfs/sbin/m5				# m5
+	@mkdir -p $(MAKEFILE_DIR)/rootfs/gem5												# gem5 library
+	$(call rmcp,$(MAKEFILE_DIR)/rootfs-config/init,$(MAKEFILE_DIR)/rootfs/sbin/init)	# init script
 endef
 
 init-ubuntu%: download-ubuntu% workload-dir
@@ -91,11 +104,7 @@ env:
 
 # 由于出错导致有残留的挂载点时，可以使用以下命令卸载
 umount:
-	-umount -l $(MAKEFILE_DIR)/rootfs/sys
-	-umount -l $(MAKEFILE_DIR)/rootfs/proc
-	-umount -l $(MAKEFILE_DIR)/rootfs/dev
-	-umount -l $(MAKEFILE_DIR)/rootfs/gem5
-	-umount -l $(MAKEFILE_DIR)/rootfs/root
-	-$(MAKEFILE_DIR)/gem5-base/util/gem5img.py umount /tmp/fstoy-rootfs
+	$(call umount_rootfs)
+	-$(MAKEFILE_DIR)/gem5-base/util/gem5img.py umount /tmp/fstoy-rootfs	# 针对 make image 的额外卸载
 
 .PHONY: chroot clean image new-empty-img download-kernel init-ubuntu% env
