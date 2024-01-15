@@ -70,6 +70,8 @@ void m5_work_end(uint64_t workid, uint64_t threadid);
 void m5_o3pipeview_roi_begin(uint64_t roi_id, uint64_t global);
 void m5_o3pipeview_roi_end(uint64_t global);
 
+uint64_t m5_iskvm(void);
+
 /*
  * Send a very generic poke to the workload so it can do something. It's up to
  * the workload to know what information to look for to interpret an event,

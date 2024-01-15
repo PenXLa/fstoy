@@ -69,7 +69,7 @@
 
 #define M5OP_O3PIPEVIEW_ROI_BEGIN   0x55 // Reserved for user, used to be annotate
 #define M5OP_O3PIPEVIEW_ROI_END     0x56 // Reserved for user
-#define M5OP_RESERVED3          0x57 // Reserved for user
+#define M5OP_ISKVM          0x57 // Reserved for user
 #define M5OP_RESERVED4          0x58 // Reserved for user
 #define M5OP_RESERVED5          0x59 // Reserved for user
 
@@ -110,6 +110,7 @@
     M5OP(m5_workload, M5OP_WORKLOAD)                            \
     M5OP(m5_o3pipeview_roi_begin, M5OP_O3PIPEVIEW_ROI_BEGIN)    \
     M5OP(m5_o3pipeview_roi_end, M5OP_O3PIPEVIEW_ROI_END)        \
+    M5OP(m5_iskvm, M5OP_ISKVM)                                  \
 
 #define M5OP_MERGE_TOKENS_I(a, b) a##b
 #define M5OP_MERGE_TOKENS(a, b) M5OP_MERGE_TOKENS_I(a, b)
