@@ -37,7 +37,7 @@ build/X86/gem5.opt configs/fs-kvm.py --cmd="/root/hello" --disk-image $FSTOY_HOM
 using namespace std;
 
 int main() {
-	with_m5_mmap({    m5_switch_cpu_addr(); m5_reset_stats_addr(0, 0);    });
+	with_m5_mmap({    m5_switch_cpu_addr(); while(m5_iskvm_addr()); m5_reset_stats(0, 0);    });
 
 	for (int i=0; i<10000; ++i) {
 		asm volatile("nop");
