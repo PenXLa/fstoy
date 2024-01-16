@@ -21,32 +21,34 @@ extern "C" {
 
 extern void *m5_mem; // 这个不能少，会被 _addr 的实现用到
 
-void m5_mmap() {
-    const char *m5_mmap_dev = "/dev/mem";
-    int fd;
-    fd = open(m5_mmap_dev, O_RDWR | O_SYNC);
-    if (fd == -1) {
-        fprintf(stderr, "Can't open %s: %s\n", m5_mmap_dev, strerror(errno));
-        exit(1);
-    }
-    m5_mem = mmap(NULL, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, M5OP_ADDR);
-    close(fd);
-    if (!m5_mem) {
-        fprintf(stderr, "Can't map %s: %s\n", m5_mmap_dev, strerror(errno));
-        exit(1);
-    }
-}
+// 不能定义函数，有可能会出现多重定义的问题。
 
-void m5_munmap() {
-    munmap(m5_mem, 0x10000);
-    m5_mem = NULL;
-}
+#define m5_mmap do { \
+        const char *m5_mmap_dev = "/dev/mem"; \
+        int fd; \
+        fd = open(m5_mmap_dev, O_RDWR | O_SYNC); \
+        if (fd == -1) { \
+            fprintf(stderr, "Can't open %s: %s\n", m5_mmap_dev, strerror(errno)); \
+            exit(1); \
+        } \
+        m5_mem = mmap(NULL, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, M5OP_ADDR); \
+        close(fd); \
+        if (!m5_mem) { \
+            fprintf(stderr, "Can't map %s: %s\n", m5_mmap_dev, strerror(errno)); \
+            exit(1); \
+        } \
+    } while (0);
+
+#define m5_munmap do { \
+        munmap(m5_mem, 0x10000); \
+        m5_mem = NULL; \
+    } while (0); 
 
 #define with_m5_mmap(block) \
     do { \
-        m5_mmap(); \
+        m5_mmap \
         block; \
-        m5_munmap(); \
+        m5_munmap \
     } while (0)
 
 #ifdef __cplusplus
