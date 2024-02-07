@@ -37,12 +37,13 @@ build/X86/gem5.opt configs/fs-kvm.py --cmd="/root/hello" --disk-image $FSTOY_HOM
 using namespace std;
 
 int main() {
-	with_m5_mmap({    m5_switch_cpu_addr(); while(m5_iskvm_addr()); m5_reset_stats(0, 0);    });
+	with_m5_mmap({    m5_switch_cpu_addr(); while(m5_iskvm_addr());   });
+	m5_reset_stats(0, 0);
 
 	for (int i=0; i<10000; ++i) {
 		asm volatile("nop");
 	}
-	with_m5_mmap({    m5_exit_addr(0);    });
+	m5_exit(0);
 	return 0;
 
 }
@@ -66,5 +67,10 @@ target_link_libraries(Executable m5)
 ## QEMU
 目前没有支持 QEMU。但是仍可以使用 out/rootfs.img 作为 QEMU 的启动镜像。一个例子：
 ```bash
-./qemu-system-x86_64 -nographic -kernel ~/bzImage -drive file=~/fstoy/out/rootfs.img,if=virtio,format=raw -append "root=/dev/vda1 console=ttyS0 init=/bin/bash"
+qemu-system-x86_64 \
+  -kernel /boot/vmlinuz \
+  -append "root=/dev/sda1 rw console=ttyS0" \
+  -drive file=out/rootfs.img,format=raw \
+  -nographic \
+  -enable-kvm
 ```
